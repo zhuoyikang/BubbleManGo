@@ -1,0 +1,74 @@
+炸弹人服务器，使用Golang编写。
+
+* [[http://msgpack.org/][MsgPack]] 协议序列化:It's like JSON.but fast and small.
+
+  A High Performance, Feature-Rich, Idiomatic encode/decode and rpc library.
+  To install:
+  go get github.com/ugorji/go/codec
+
+  Source: [http://github.com/ugorji/go]
+  Online documentation: [http://godoc.org/github.com/ugorji/go/codec]
+
+  http://ugorji.net/blog/go-codec-primer
+
+  #+begin_src go -r -n
+    package main
+
+    import (
+            "fmt"
+            "github.com/ugorji/go/codec"
+    )
+
+    type A struct {
+            I int
+            S string
+    }
+    type B float64
+
+    // var v1 A
+    // var v2 *A = &v1
+    // var v3 int = 9
+    // var v4 bool = false
+    // var v5 interface{} = v3
+    // var v6 interface{} = nil
+    // var v7 B
+    // var v8 *B = &v7
+
+    //
+    func t1() {
+            v1 := A{I: 2333, S: "goodfwefwefe"}
+            v2 := &A{}
+
+            //encode
+            var b []byte = make([]byte, 0, 64)
+            var h codec.Handle = new(codec.MsgpackHandle)
+
+            var enc *codec.Encoder = codec.NewEncoderBytes(&b, h)
+            error := enc.Encode(v1)
+
+            if error != nil {
+                    fmt.Printf("%s\n", "encode2 error")
+            }
+
+            //decode
+            var dec *codec.Decoder = codec.NewDecoderBytes(b, h)
+            error = dec.Decode(v2)
+
+            if error != nil {
+                    fmt.Printf("%s\n", "decode error")
+            }
+
+            fmt.Printf("v1 %v\nv2 %v\n", v1, *v2)
+    }
+
+    //
+    func main() {
+            t1()
+    }
+
+  #+end_src
+
+  #+RESULTS:
+  : v1 {2333 goodfwefwefe}
+  : v2 {2333 goodfwefwefe}
+

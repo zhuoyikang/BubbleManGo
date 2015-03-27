@@ -1,0 +1,46 @@
+// /*------------------------------------------------------------------------------
+//  session 管理
+// ------------------------------------------------------------------------------*/
+
+// type Session interface {
+//      //返回sessionId
+//      Id()
+// }
+
+// type SessionMgr struct {
+//      mutex *sync.Mutex
+//      id int //用来生成id，每个+1
+//      ss map[int]Session  //所有的session.
+// }
+
+
+// //返回一个新的id.
+// func (mgr SessionMgr) newId() int {
+//      mgr.id += 1
+//      return mgr.id
+// }
+
+// func (mgr SessionMgr) Add(s Session) int {
+//      defer func() {mgr.mutex.Unlock()}()
+//      mgr.mutex.Lock()
+//      id := mgr.newId()
+//      mgr.ss[id]=s
+//      return id
+// }
+
+// func (mgr SessionMgr) Del(id int) {
+//      defer func() {mgr.mutex.Unlock()}()
+//      delete(mgr.ss,id)
+//      mgr.mutex.Lock()
+// }
+
+// /*------------------------------------------------------------------------------
+//  进程处理
+// ------------------------------------------------------------------------------*/
+
+
+
+// //
+// func name() {
+//      fmt.Printf("%s\n", "fwef")
+// }
