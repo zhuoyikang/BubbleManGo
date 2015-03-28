@@ -2,6 +2,7 @@ package bubble
 
 import (
 	"agent"
+	"github.com/ugorji/go/codec"
 	"fmt"
 )
 
@@ -11,7 +12,11 @@ var PacketHandlerMap = agent.HandlerMap{
 }
 
 //登陆包
-func LoginPktHandler(s *agent.UserData, b []byte) int {
+func LoginPktHandler(s *agent.Session, b []byte) int {
+	var login LoginPkt
+	dec := codec.NewDecoderBytes(b, s.H)
+	dec.Decode(&login)
+
 	fmt.Printf("%s\n", "login")
 	return 0;
 }

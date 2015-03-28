@@ -13,7 +13,7 @@ import (
 ------------------------------------------------------------------------------*/
 
 type UserData interface{}
-type Handler func(*UserData, []byte) int
+type Handler func(*Session, []byte) int
 type HandlerMap map[int]Handler
 
 type TcpAgent struct {
@@ -39,8 +39,14 @@ func (agent *TcpAgent) Run() {
 	if err != nil {
 		os.Exit(1)
 	}
-	defer listener.Close()
+
+	defer func() {
+		agent.wg.Done()
+		listener.Close()
+	} ()
+
 	agent.listener = listener
+	agent.wg.Add(1)
 
 	for {
 		conn, err := listener.Accept()
@@ -48,15 +54,15 @@ func (agent *TcpAgent) Run() {
 			fmt.Printf("Error Accept %s\n", err.Error())
 			return
 		}
-		session := new(Session)
-		session.conn = conn
-		agent.connectionPool[conn] = session
+		session := MakeSession(conn)
+		agent.connectionPool[conn] = &session
 		go session.HandleClient(agent)
 	}
 }
 
 // 同步关闭所有的连接和连接处理routine.
 func (agent *TcpAgent) Close() {
+	agent.listener.Close()
 	for k, _ := range agent.connectionPool {
 		k.Close()
 	}
