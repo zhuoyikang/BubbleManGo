@@ -33,6 +33,7 @@ func MakeTcpAgent(ip string, h HandlerMap) TcpAgent {
 	return agent
 }
 
+
 //开始工作
 func (agent *TcpAgent) Run() {
 	listener, err := net.Listen("tcp", agent.ip)

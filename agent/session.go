@@ -24,6 +24,14 @@ func MakeSession(conn net.Conn) Session {
 	return s
 }
 
+func ShowBytes(s string, data []byte) {
+	fmt.Printf("show byte(%d) %s:", len(data), s)
+	for _, i := range data {
+		fmt.Printf("%x ", i)
+	}
+	fmt.Printf("\n")
+}
+
 // 发包.
 func (s *Session) SendPkt(t int, v interface{}) error {
 	b := make([]byte, 64)
@@ -37,14 +45,6 @@ func (s *Session) SendPkt(t int, v interface{}) error {
 	header[1] = byte(t)
 	data := append(header, b...)
 	return s.SendBytes(data)
-}
-
-func ShowBytes(s string, data []byte) {
-	fmt.Printf("show byte(%d) %s:", len(data), s)
-	for _, i := range data {
-		fmt.Printf("%x ", i)
-	}
-	fmt.Printf("\n")
 }
 
 // 发数据包.
