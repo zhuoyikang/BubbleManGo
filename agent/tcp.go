@@ -1,7 +1,6 @@
 package agent
 
 import (
-	//"errors"
 	"fmt"
 	"net"
 	"os"
@@ -12,7 +11,6 @@ import (
  agent:监听端口分发进程
 ------------------------------------------------------------------------------*/
 
-type UserData interface{}
 type Handler func(*Session, []byte) int
 type HandlerMap map[int]Handler
 
@@ -25,14 +23,13 @@ type TcpAgent struct {
 }
 
 //创建一个agent.
-func MakeTcpAgent(ip string, h HandlerMap) TcpAgent {
+func MakeTcpAgent(ip string, h HandlerMap) *TcpAgent {
 	agent := TcpAgent{ip: ip}
 	agent.wg = &sync.WaitGroup{}
 	agent.connectionPool = make(map[net.Conn]*Session)
 	agent.hmap = h
-	return agent
+	return &agent
 }
-
 
 //开始工作
 func (agent *TcpAgent) Run() {
@@ -44,7 +41,7 @@ func (agent *TcpAgent) Run() {
 	defer func() {
 		agent.wg.Done()
 		listener.Close()
-	} ()
+	}()
 
 	agent.listener = listener
 	agent.wg.Add(1)

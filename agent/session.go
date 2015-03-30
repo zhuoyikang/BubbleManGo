@@ -2,7 +2,6 @@ package agent
 
 import (
 	"fmt"
-	"github.com/ugorji/go/codec"
 	"io"
 	"net"
 )
@@ -11,16 +10,20 @@ import (
  session:单个连接由session处理。
 ------------------------------------------------------------------------------*/
 
+type UD interface {
+	Run()
+	Stop()
+}
+
 type Session struct {
-	conn net.Conn  //网络连接,of course.
-	U    *UserData //玩家数据,of course.
-	H    codec.Handle
+	conn net.Conn //网络连接,of course.
+	U    UD       //玩家数据,of course.
 }
 
 func MakeSession(conn net.Conn) Session {
 	s := Session{}
 	s.conn = conn
-	s.H = new(codec.MsgpackHandle)
+	s.U = nil
 	return s
 }
 
@@ -30,21 +33,6 @@ func ShowBytes(s string, data []byte) {
 		fmt.Printf("%x ", i)
 	}
 	fmt.Printf("\n")
-}
-
-// 发包.
-func (s *Session) SendPkt(t int, v interface{}) error {
-	b := make([]byte, 64)
-	enc := codec.NewEncoderBytes(&b, s.H)
-	header := make([]byte, 2)
-	if error := enc.Encode(v); error != nil {
-		fmt.Printf("SendPkt %s\n", "encode2 error")
-		return error
-	}
-	header[0] = byte(t >> 8)
-	header[1] = byte(t)
-	data := append(header, b...)
-	return s.SendBytes(data)
 }
 
 // 发数据包.
@@ -114,16 +102,21 @@ func (s *Session) HandleClient(agent *TcpAgent) {
 	}()
 	for {
 		t, data := s.ReadPkt(s.conn)
+		fmt.Printf("r %d %v\n", t, data)
 		if t < 0 {
 			//读包异常，直接退出
+			if s.U != nil {
+				s.U.Stop()
+			}
 			break
 		}
 		//如果没有对应的处理函数，忽略,
 		if h, err := agent.hmap[t]; err == false {
 			fmt.Printf("%s\n", "unkown pkt")
-			return
+			continue
 		} else {
 			h(s, data)
 		}
 	}
+	fmt.Printf("%s\n", "handle client stop")
 }

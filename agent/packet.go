@@ -1,67 +1,123 @@
 package agent
 
-// import (
-// 	"fmt"
-// 	"io"
-// )
+import (
+	"errors"
+)
 
-// type Packet struct {
-// }
+func BzReadbyte(datai []byte) (data []byte, ret byte, err error) {
+	data = datai
+	if 1 > len(data) {
+		err = errors.New("read byte failed")
+		return
+	}
+	ret = data[0]
+	data = data[1:]
+	return
+}
 
-// //读取一个完整的数据包.
-// // t:类型
-// // d:数据
-// func (pkt Packet) ReadPkt(reader io.Reader) (t int, buffer []byte) {
-// 	//两个字节的类型.
-// 	header := []byte{0, 0}
+func BzWritebyte(datai []byte, v byte) (data []byte, err error) {
+	data = datai
+	data = append(data, byte(v))
+	return
+}
 
-// 	//前两个字节包长度 >= 4
-// 	n, err := io.ReadFull(reader, header)
-// 	if err != nil || n != 2 {
-// 		return -1, nil
-// 	}
-// 	pkt_length := uint16(header[0])<<8 | uint16(header[1])
+func BzReaduint16(datai []byte) (data []byte, ret uint16, err error) {
+	data = datai
+	if 2 > len(data) {
+		err = errors.New("read uint16 failed")
+		return
+	}
 
-// 	//后两个字节包类型
-// 	n, err = io.ReadFull(reader, header)
-// 	if err != nil || n != 2 {
-// 		return -1, nil
-// 	}
+	buf := data[0:2]
+	ret = uint16(buf[0])<<8 | uint16(buf[1])
+	data = data[2:]
+	return
+}
 
-// 	t = int(uint16(header[0])<<8 | uint16(header[1]))
+func BzWriteuint16(datai []byte, v uint16) (data []byte, err error) {
+	data = datai
+	data = append(data, byte(v>>8), byte(v))
+	return
+}
 
-// 	//包可以无内容
-// 	if pkt_length <= 4 {
-// 		return t, nil
-// 	}
+func BzReadint16(datai []byte) (data []byte, ret int16, err error) {
+	if 2 > len(data) {
+		err = errors.New("read uint16 failed")
+		return
+	}
 
-// 	buffer = make([]byte, pkt_length-4)
-// 	n, err = io.ReadFull(reader, buffer)
+	buf := data[0:2]
+	ret = int16(buf[0])<<8 | int16(buf[1])
+	data = data[2:]
+	return
+}
 
-// 	if err != nil || uint16(n) != (pkt_length-4) {
-// 		return -1, nil
-// 	}
+func BzWriteint16(datai []byte, v int16) (data []byte, err error) {
+	data = datai
+	data = append(data, byte(v>>8), byte(v))
+	return
+}
 
-// 	//返回包内容和包内容.
-// 	return t, buffer
-// }
+func BzReaduint32(datai []byte) (data []byte, ret uint32, err error) {
+	data = datai
+	if 4 > len(data) {
+		err = errors.New("read uint32 failed")
+		return
+	}
 
-// func xx(s *Session, b []byte) (ret int) {
-// 	fmt.Printf("%s\n", "haha")
+	buf := data[0:4]
+	ret = uint32(buf[0])<<24 | uint32(buf[1])<<16 | uint32(buf[2])<<8 |
+		uint32(buf[3])
+
+	data = data[4:]
+	return
+}
+
+func BzWriteuint32(datai []byte, v uint32) (data []byte, err error) {
+	data = datai
+	data = append(data, byte(v>>24), byte(v>>16),
+		byte(v>>8), byte(v))
+	return
+}
+
+func BzReadint32(datai []byte) (data []byte, ret int32, err error) {
+	data, ret1, err := BzReaduint32(datai)
+	ret = int32(ret1)
+	return
+}
+
+func BzWriteint32(datai []byte, v int32) (data []byte, err error) {
+	return BzWriteuint32(datai, uint32(v))
+}
+
+func BzReadstring(datai []byte) (data []byte, ret string, err error) {
+	data, size, err := BzReaduint16(datai)
+	if err != nil {
+		return
+	}
+	if int(size) > len(data) {
+		err = errors.New("read string failed")
+	}
+
+	bytes := data[0:int(size)]
+	ret = string(bytes)
+	data = data[int(size):]
+	return
+}
+
+func BzWritestring(datai []byte, str string) (data []byte, err error) {
+	bytes := []byte(str)
+	data, err = BzWriteuint16(datai, uint16(len(bytes)))
+	data = append(data, bytes...)
+	return
+}
+
+// // 创建一个完整的数据包
+// func MakePacketData(api uint16, datai []byte) (data []byte) {
+// 	length := 4 + len(datai)
+// 	data = append(data, byte(length>>8), byte(length))
+// 	data = append(data, byte(api>>8), byte(api))
+// 	data = append(data, datai...)
+
 // 	return
-// }
-
-// // map 语法。
-// var packetHandlerMap = map[int]func(*Session, []byte) int{
-// 	1: xx,
-// }
-
-// //在本routine中分发处理包.
-// func (pkt Packet) DispatchPkt(t int, buffer []byte) {
-// 	//如果没有对应的处理函数，忽略,
-// 	if h, err := packetHandlerMap[t]; err == false {
-// 		fmt.Printf("%s\n", "unkown pkt")
-// 		return
-// 	}
-// 	h()
 // }
