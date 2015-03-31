@@ -5,6 +5,7 @@ import (
 	"fmt"
 )
 
+
 // map 语法。
 var PacketHandlerMap = agent.HandlerMap{
 	BZ_USERLOGINREQ: LoginPktHandler,

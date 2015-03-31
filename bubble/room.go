@@ -6,6 +6,12 @@ import (
 	"fmt"
 )
 
+const (
+	ROOM_MAP_WIDTH = 18   //格子宽
+	ROOM_MAP_HEIGHT = 10  //格子高.
+)
+
+
 //一个炸弹房间
 type Room struct {
 	mq chan Msg
@@ -20,9 +26,8 @@ func MakeRoom(u1 chan Msg, u2 chan Msg) *Room {
 
 //房间建立时通知各个玩家.
 func (r *Room) NotifyReady() {
-	msg := Msg{t: MSG_T_ROOM_READY}
-	r.u1 <- msg
-	r.u2 <- msg
+	r.u1 <- Msg{t: MSG_T_ROOM_READY, d:int32(0)}
+	r.u2 <- Msg{t: MSG_T_ROOM_READY, d:int32(1)}
 }
 
 //其中一个玩家退出，给另一个玩家发送通知消息，并关闭room。

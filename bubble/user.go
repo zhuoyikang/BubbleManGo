@@ -38,7 +38,15 @@ func (u *UserData) Run() {
 			bytes := msg.d.([]byte)
 			u.S.SendBytes(bytes)
 		case msg.t == MSG_T_ROOM_READY:
-			ready := RoomReadyNtf{}
+			u1 := &RoomUser{pos: &BVector2{x:1, y:ROOM_MAP_HEIGHT}}
+			u2 := &RoomUser{pos: &BVector2{x:ROOM_MAP_WIDTH,
+				y:ROOM_MAP_HEIGHT}}
+			uAll := []*RoomUser{u1,u2}
+			ready := RoomReadyNtf{
+				roomId:0,
+				uPosAll:uAll,
+				uIdx:msg.d.(int32),
+			}
 			bytes, _ := BzWriteRoomReadyNtf(make([]byte, 0), &ready)
 			u.S.SendPkt(BZ_ROOMREADYNTF, bytes)
 		case msg.t == MSG_T_ROOM_CLOSE:
