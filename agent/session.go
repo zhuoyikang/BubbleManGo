@@ -35,7 +35,17 @@ func ShowBytes(s string, data []byte) {
 	fmt.Printf("\n")
 }
 
-// 发数据包.
+// 发送一个完整的包.
+func (s *Session) SendPkt(api uint16, datai []byte) {
+	length := 4 + len(datai)
+	data := make([]byte,0)
+	data = append(data, byte(length>>8), byte(length))
+	data = append(data, byte(api>>8), byte(api))
+	data = append(data, datai...)
+	s.SendBytes(data)
+}
+
+// 发2进制数据
 func (s *Session) SendBytes(data []byte) error {
 	ShowBytes("SendBytes", data)
 	w := s.conn

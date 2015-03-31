@@ -40,11 +40,11 @@ func (u *UserData) Run() {
 		case msg.t == MSG_T_ROOM_READY:
 			ready := RoomReadyNtf{}
 			bytes, _ := BzWriteRoomReadyNtf(make([]byte, 0), &ready)
-			u.S.SendBytes(bytes)
+			u.S.SendPkt(BZ_ROOMREADYNTF, bytes)
 		case msg.t == MSG_T_ROOM_CLOSE:
 			close := RoomCloseNtf{}
 			bytes, _ := BzWriteRoomCloseNtf(make([]byte, 0), &close)
-			u.S.SendBytes(bytes)
+			u.S.SendPkt(BZ_ROOMCLOSENTF, bytes)
 		default:
 			fmt.Printf("%s\n", "user unkown msg")
 		}
