@@ -1,13 +1,14 @@
 package bubble
 
 const (
-	MSG_T_CLIENT = 0    //客户端消息
-	MSG_T_TCP_BIN = 1   // 消息转发.此类消息直接从进程中发送出去.\
-	MSG_T_JOIN = 2      // 请求加入房间
-	MSG_T_ROOM_CLOSE = 3 //房间关闭
-	MSG_T_ROOM_READY = 4 //房间建立
-	MSG_T_ROOM_USER_CHG = 4
-	MSG_T_QUIT = 3      // 请求退出房间
+	MSG_T_CLIENT     = iota //客户端消息
+	MSG_T_TCP_BIN           // 消息转发.此类消息直接从进程中发送出去.\
+	MSG_T_JOIN              // 请求加入房间
+	MSG_T_ROOM_CLOSE        //房间关闭
+	MSG_T_ROOM_READY        //房间建立
+	MSG_T_ROOM_USER_CHG
+	MSG_T_QUIT     // 请求退出房间
+	MSG_T_ROOM_MSG //房间消息.
 )
 
 // 消息.
@@ -24,13 +25,17 @@ type ClientMsg struct {
 
 // 房间准备好了
 type RoomReadMsg struct {
-	id int
+	id     int
 	roomMq chan Msg
 }
 
 // RoomCast Msg
-type RoomCastMsg struct {
-	t int
+type RoomMsg struct {
+	t   int
 	uid int
-	d []byte
+	d   []byte
 }
+
+// type MsgHandler func() int
+// type MsgHandlerMap map[int]Handler
+

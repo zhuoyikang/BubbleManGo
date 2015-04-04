@@ -83,7 +83,7 @@ func (u *UserData) MsgClient(msg Msg) int {
 
 // 直接发送2进制消息，
 func (u *UserData) MsgTcpBin(msg Msg) int {
-	castMsg := msg.d.(RoomCastMsg)
+	castMsg := msg.d.(RoomMsg)
 	u.S.SendPkt(uint16(castMsg.t), castMsg.d)
 	return 0
 }

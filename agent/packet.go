@@ -136,3 +136,13 @@ func BzWritebytes(datai []byte, str []byte) (data []byte, err error) {
 	data = append(data, bytes...)
 	return
 }
+
+
+func BzMakePkt(api uint16, datai []byte) []byte {
+	length := 4 + len(datai)
+	data := make([]byte, 0)
+	data = append(data, byte(length>>8), byte(length))
+	data = append(data, byte(api>>8), byte(api))
+	data = append(data, datai...)
+	return data
+}

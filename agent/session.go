@@ -35,6 +35,7 @@ func ShowBytes(s string, data []byte) {
 	fmt.Printf("\n")
 }
 
+
 // 发送一个完整的包.
 func (s *Session) SendPkt(api uint16, datai []byte) {
 	length := 4 + len(datai)

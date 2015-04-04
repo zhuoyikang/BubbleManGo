@@ -10,6 +10,8 @@ const (
 	BZ_ROOMREADYNTF = 5
 	BZ_ROOMCLOSENTF = 6
 	BZ_ROOMUSERCHG = 7
+	BZ_SETBUBBLEREQ = 8
+	BZ_BUBBLEBOMB = 9
 )
 
 type UserLoginReq struct {
@@ -54,10 +56,26 @@ type RoomCloseNtf struct {
 }
 
 type RoomUserChg struct {
-	uid int32
-	status int32
-	direction int32
+	uIdx int32
+	user *RoomUser
+}
+
+type Bubble struct {
+	id int32
 	pos *BVector2
+	power int32
+	keeptime int32
+}
+
+type SetBubble struct {
+	b *Bubble
+	uIdx int32
+}
+
+type BubbleBomb struct {
+	id int32
+	destroyTiles []*BVector2
+	destroyUsers []int32
 }
 
 func BzReadUserLoginReq(datai []byte) (data []byte, ret *UserLoginReq, err error) {
@@ -231,19 +249,11 @@ func BzWriteRoomCloseNtf(datai []byte, ret *RoomCloseNtf) (data []byte, err erro
 func BzReadRoomUserChg(datai []byte) (data []byte, ret *RoomUserChg, err error) {
 	data = datai
 	ret = &RoomUserChg{}
-	data, ret.uid, err = BzReadint32(data)
+	data, ret.uIdx, err = BzReadint32(data)
  	if err != nil {
  		return
  	}
-	data, ret.status, err = BzReadint32(data)
- 	if err != nil {
- 		return
- 	}
-	data, ret.direction, err = BzReadint32(data)
- 	if err != nil {
- 		return
- 	}
-	data, ret.pos, err = BzReadBVector2(data)
+	data, ret.user, err = BzReadRoomUser(data)
  	if err != nil {
  		return
  	}
@@ -251,9 +261,101 @@ func BzReadRoomUserChg(datai []byte) (data []byte, ret *RoomUserChg, err error) 
 }
 func BzWriteRoomUserChg(datai []byte, ret *RoomUserChg) (data []byte, err error) {
 	data = datai
-	data, err = BzWriteint32(data, ret.uid)
-	data, err = BzWriteint32(data, ret.status)
-	data, err = BzWriteint32(data, ret.direction)
+	data, err = BzWriteint32(data, ret.uIdx)
+	data, err = BzWriteRoomUser(data, ret.user)
+	return
+}
+func BzReadBubble(datai []byte) (data []byte, ret *Bubble, err error) {
+	data = datai
+	ret = &Bubble{}
+	data, ret.id, err = BzReadint32(data)
+ 	if err != nil {
+ 		return
+ 	}
+	data, ret.pos, err = BzReadBVector2(data)
+ 	if err != nil {
+ 		return
+ 	}
+	data, ret.power, err = BzReadint32(data)
+ 	if err != nil {
+ 		return
+ 	}
+	data, ret.keeptime, err = BzReadint32(data)
+ 	if err != nil {
+ 		return
+ 	}
+	return
+}
+func BzWriteBubble(datai []byte, ret *Bubble) (data []byte, err error) {
+	data = datai
+	data, err = BzWriteint32(data, ret.id)
 	data, err = BzWriteBVector2(data, ret.pos)
+	data, err = BzWriteint32(data, ret.power)
+	data, err = BzWriteint32(data, ret.keeptime)
+	return
+}
+func BzReadSetBubble(datai []byte) (data []byte, ret *SetBubble, err error) {
+	data = datai
+	ret = &SetBubble{}
+	data, ret.b, err = BzReadBubble(data)
+ 	if err != nil {
+ 		return
+ 	}
+	data, ret.uIdx, err = BzReadint32(data)
+ 	if err != nil {
+ 		return
+ 	}
+	return
+}
+func BzWriteSetBubble(datai []byte, ret *SetBubble) (data []byte, err error) {
+	data = datai
+	data, err = BzWriteBubble(data, ret.b)
+	data, err = BzWriteint32(data, ret.uIdx)
+	return
+}
+func BzReadBubbleBomb(datai []byte) (data []byte, ret *BubbleBomb, err error) {
+	data = datai
+	ret = &BubbleBomb{}
+	data, ret.id, err = BzReadint32(data)
+ 	if err != nil {
+ 		return
+ 	}
+	var destroyTiles_v *BVector2
+	data, destroyTiles_size, err := BzReaduint16(data)
+	for i := 0; i < int(destroyTiles_size); i++ {
+		data, destroyTiles_v, err = BzReadBVector2(data)
+	 	if err != nil {
+	 		return
+	 	}
+		ret.destroyTiles = append(ret.destroyTiles, destroyTiles_v)
+	}
+ 	if err != nil {
+ 		return
+ 	}
+	var destroyUsers_v int32
+	data, destroyUsers_size, err := BzReaduint16(data)
+	for i := 0; i < int(destroyUsers_size); i++ {
+		data, destroyUsers_v, err = BzReadint32(data)
+	 	if err != nil {
+	 		return
+	 	}
+		ret.destroyUsers = append(ret.destroyUsers, destroyUsers_v)
+	}
+ 	if err != nil {
+ 		return
+ 	}
+	return
+}
+func BzWriteBubbleBomb(datai []byte, ret *BubbleBomb) (data []byte, err error) {
+	data = datai
+	data, err = BzWriteint32(data, ret.id)
+	data, err = BzWriteuint16(data, uint16(len(ret.destroyTiles)))
+	for _, destroyTiles_v := range ret.destroyTiles {
+		data, err = BzWriteBVector2(data, destroyTiles_v)
+	}
+	data, err = BzWriteuint16(data, uint16(len(ret.destroyUsers)))
+	for _, destroyUsers_v := range ret.destroyUsers {
+		data, err = BzWriteint32(data, destroyUsers_v)
+	}
 	return
 }
