@@ -11,23 +11,24 @@ import (
  agent:监听端口分发进程
 ------------------------------------------------------------------------------*/
 
-type Handler func(*Session, []byte) int
-type HandlerMap map[int]Handler
+
 
 type TcpAgent struct {
+	a Agent
 	ip             string
-	hmap           HandlerMap
+	//hmap           HandlerMap
 	connectionPool map[net.Conn]*Session
 	listener       net.Listener
 	wg             *sync.WaitGroup
 }
 
 //创建一个agent.
-func MakeTcpAgent(ip string, h HandlerMap) *TcpAgent {
+func MakeTcpAgent(ip string, a Agent) *TcpAgent {
 	agent := TcpAgent{ip: ip}
 	agent.wg = &sync.WaitGroup{}
 	agent.connectionPool = make(map[net.Conn]*Session)
-	agent.hmap = h
+	//agent.hmap = h
+	agent.a = a
 	return &agent
 }
 

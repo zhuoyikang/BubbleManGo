@@ -38,7 +38,7 @@ func ShowBytes(s string, data []byte) {
 // 发送一个完整的包.
 func (s *Session) SendPkt(api uint16, datai []byte) {
 	length := 4 + len(datai)
-	data := make([]byte,0)
+	data := make([]byte, 0)
 	data = append(data, byte(length>>8), byte(length))
 	data = append(data, byte(api>>8), byte(api))
 	data = append(data, datai...)
@@ -110,6 +110,7 @@ func (s *Session) HandleClient(agent *TcpAgent) {
 		agent.wg.Done()
 		delete(agent.connectionPool, s.conn)
 	}()
+	agent.a.Start(s)
 	for {
 		t, data := s.ReadPkt(s.conn)
 		fmt.Printf("r %d %v\n", t, data)
@@ -120,12 +121,9 @@ func (s *Session) HandleClient(agent *TcpAgent) {
 			}
 			break
 		}
-		//如果没有对应的处理函数，忽略,
-		if h, err := agent.hmap[t]; err == false {
-			fmt.Printf("%s\n", "unkown pkt")
-			continue
-		} else {
-			h(s, data)
+		// agent自己处理包，返回false时退出。
+		if err := agent.a.Handler(s, t, data); err == false {
+			break
 		}
 	}
 	fmt.Printf("%s\n", "handle client stop")

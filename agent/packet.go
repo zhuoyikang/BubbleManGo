@@ -112,12 +112,27 @@ func BzWritestring(datai []byte, str string) (data []byte, err error) {
 	return
 }
 
-// // 创建一个完整的数据包
-// func MakePacketData(api uint16, datai []byte) (data []byte) {
-// 	length := 4 + len(datai)
-// 	data = append(data, byte(length>>8), byte(length))
-// 	data = append(data, byte(api>>8), byte(api))
-// 	data = append(data, datai...)
 
-// 	return
-// }
+
+//2进制类型.
+func BzReadbytes(datai []byte) (data []byte, ret []byte, err error) {
+	data, size, err := BzReaduint16(datai)
+	if err != nil {
+		return
+	}
+	if int(size) > len(data) {
+		err = errors.New("read bytes failed")
+	}
+
+	bytes := data[0:int(size)]
+	ret = bytes
+	data = data[int(size):]
+	return
+}
+
+func BzWritebytes(datai []byte, str []byte) (data []byte, err error) {
+	bytes := []byte(str)
+	data, err = BzWriteuint16(datai, uint16(len(bytes)))
+	data = append(data, bytes...)
+	return
+}

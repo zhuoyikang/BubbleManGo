@@ -9,6 +9,7 @@ const (
 	BZ_USERJOINACK = 4
 	BZ_ROOMREADYNTF = 5
 	BZ_ROOMCLOSENTF = 6
+	BZ_ROOMUSERCHG = 7
 )
 
 type UserLoginReq struct {
@@ -38,6 +39,8 @@ type BVector2 struct {
 
 type RoomUser struct {
 	pos *BVector2
+	direction int32
+	status int32
 }
 
 type RoomReadyNtf struct {
@@ -48,6 +51,13 @@ type RoomReadyNtf struct {
 
 type RoomCloseNtf struct {
 	t int32
+}
+
+type RoomUserChg struct {
+	uid int32
+	status int32
+	direction int32
+	pos *BVector2
 }
 
 func BzReadUserLoginReq(datai []byte) (data []byte, ret *UserLoginReq, err error) {
@@ -152,11 +162,21 @@ func BzReadRoomUser(datai []byte) (data []byte, ret *RoomUser, err error) {
  	if err != nil {
  		return
  	}
+	data, ret.direction, err = BzReadint32(data)
+ 	if err != nil {
+ 		return
+ 	}
+	data, ret.status, err = BzReadint32(data)
+ 	if err != nil {
+ 		return
+ 	}
 	return
 }
 func BzWriteRoomUser(datai []byte, ret *RoomUser) (data []byte, err error) {
 	data = datai
 	data, err = BzWriteBVector2(data, ret.pos)
+	data, err = BzWriteint32(data, ret.direction)
+	data, err = BzWriteint32(data, ret.status)
 	return
 }
 func BzReadRoomReadyNtf(datai []byte) (data []byte, ret *RoomReadyNtf, err error) {
@@ -206,5 +226,34 @@ func BzReadRoomCloseNtf(datai []byte) (data []byte, ret *RoomCloseNtf, err error
 func BzWriteRoomCloseNtf(datai []byte, ret *RoomCloseNtf) (data []byte, err error) {
 	data = datai
 	data, err = BzWriteint32(data, ret.t)
+	return
+}
+func BzReadRoomUserChg(datai []byte) (data []byte, ret *RoomUserChg, err error) {
+	data = datai
+	ret = &RoomUserChg{}
+	data, ret.uid, err = BzReadint32(data)
+ 	if err != nil {
+ 		return
+ 	}
+	data, ret.status, err = BzReadint32(data)
+ 	if err != nil {
+ 		return
+ 	}
+	data, ret.direction, err = BzReadint32(data)
+ 	if err != nil {
+ 		return
+ 	}
+	data, ret.pos, err = BzReadBVector2(data)
+ 	if err != nil {
+ 		return
+ 	}
+	return
+}
+func BzWriteRoomUserChg(datai []byte, ret *RoomUserChg) (data []byte, err error) {
+	data = datai
+	data, err = BzWriteint32(data, ret.uid)
+	data, err = BzWriteint32(data, ret.status)
+	data, err = BzWriteint32(data, ret.direction)
+	data, err = BzWriteBVector2(data, ret.pos)
 	return
 }

@@ -4,6 +4,7 @@
 BEGIN {
     LoadPath()
     LoadParam()
+    LoadStructTypeAlias()
     LoadTypeAlias()
     ApiCount = 1
     PayLoadCount = 1
@@ -32,6 +33,23 @@ function LoadParam() {
 
     }
 }
+
+
+# 类型别名.
+function LoadStructTypeAlias() {
+    StructTypeMap["bytes"] = "[]byte"
+    StructTypeMap["byte"] = "byte"
+    StructTypeMap["uint32"] = "uint32"
+    StructTypeMap["int32"] = "int32"
+
+    StructTypeMap["uint16"] = "uint16"
+    StructTypeMap["int16"] = "int16"
+
+    StructTypeMap["string"] = "string"
+    StructTypeMap["int"] = "int32"
+    StructTypeMap["integer"] = "int32"
+}
+
 
 # 类型别名.
 function LoadTypeAlias() {
@@ -120,13 +138,17 @@ function OutPutPayLoadStruct(Name) {
         type = PayLoadList[Name,StructI,"type"]
         addtion = PayLoadList[Name,StructI,"addtion"]
         if(type == "array") {
-            if(TypeMap[addtion]=="") {
+            if(StructTypeMap[addtion]=="") {
                 addtion="*"addtion
+            }else{
+                type=StructTypeMap[type]
             }
             printf("\t%s []%s\n", name,addtion) > genFile
         } else {
-            if(TypeMap[type]=="") {
+            if(StructTypeMap[type]=="") {
                 type="*"type
+            }else{
+                type=StructTypeMap[type]
             }
             printf("\t%s %s\n", name,type) > genFile
         }

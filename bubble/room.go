@@ -26,8 +26,10 @@ func MakeRoom(u1 chan Msg, u2 chan Msg) *Room {
 
 //房间建立时通知各个玩家.
 func (r *Room) NotifyReady() {
-	r.u1 <- Msg{t: MSG_T_ROOM_READY, d:int32(0)}
-	r.u2 <- Msg{t: MSG_T_ROOM_READY, d:int32(1)}
+	u1d := RoomReadMsg{id:0,roomMq:r.mq}
+	u2d := RoomReadMsg{id:0,roomMq:r.mq}
+	r.u1 <- Msg{t: MSG_T_ROOM_READY, d:u1d}
+	r.u2 <- Msg{t: MSG_T_ROOM_READY, d:u2d}
 }
 
 //其中一个玩家退出，给另一个玩家发送通知消息，并关闭room。
@@ -59,18 +61,18 @@ J:
 				r.NotifyClose(r.u2)
 				break J
 			}
-		case msg, status = <-r.u1:
-			if status == false {
-				r.NotifyClose(r.u2)
-				break J
-			}
-			fmt.Printf("u1 %v %v\n", msg, status)
-		case msg, status = <-r.u2:
-			if status == false {
-				r.NotifyClose(r.u1)
-				break J
-			}
-			fmt.Printf("u2 %v %v\n", msg, status)
+		// case msg, status = <-r.u1:
+		//	if status == false {
+		//		r.NotifyClose(r.u2)
+		//		break J
+		//	}
+		//	fmt.Printf("u1 %v %v\n", msg, status)
+		// case msg, status = <-r.u2:
+		//	if status == false {
+		//		r.NotifyClose(r.u1)
+		//		break J
+		//	}
+		//	fmt.Printf("u2 %v %v\n", msg, status)
 		}
 		fmt.Printf("%s\n", "hehere")
 	}
