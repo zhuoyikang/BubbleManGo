@@ -7,6 +7,7 @@ const (
 	MSG_T_ROOM_CLOSE = 3 //房间关闭
 	MSG_T_ROOM_READY = 4 //房间建立
 	MSG_T_ROOM_USER_CHG = 4
+	MSG_T_QUIT = 3      // 请求退出房间
 )
 
 // 消息.

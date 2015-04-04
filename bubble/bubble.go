@@ -15,10 +15,11 @@ func (b BubbleGs) Start(s *agent.Session) {
 
 // 给一个初始化的机会
 func (b BubbleGs) Stop(s *agent.Session) {
-	if s.U != nil {
-		s.U.(*UserData).Stop()
+	if s.U == nil {
+		return
 	}
-	fmt.Printf("%s\n", "stop")
+	u := s.U.(*UserData)
+	u.Stop()
 }
 
 // 分发处理客户端消息. clientRoutine只处理登录等消息，登录后消息分发给user处理。

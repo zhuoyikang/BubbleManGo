@@ -46,7 +46,6 @@ func (u *UserData) MsgDispatch(msg Msg, status bool) int {
 func (u *UserData) Run() {
 	var msg Msg
 	var status bool
-
 Out:
 	for {
 		msg, status = <-u.mq
@@ -59,7 +58,10 @@ Out:
 
 //玩家异步消息处理进程.
 func (u *UserData) Stop() {
-	fmt.Printf("%s stop\n", "UseData")
+	fmt.Printf("%s stop %v\n", "UseData", u.roomMq)
+	if(u.roomMq != nil) {
+		u.roomMq <- Msg{t:MSG_T_QUIT}
+	}
 	//关闭mq后，用户服务器进程也会关闭.
 	close(u.mq)
 }
@@ -115,8 +117,14 @@ func (u *UserData) MsgRoomReady(msg Msg) int {
 
 // 房间关门闭。
 func (u *UserData) MsgRoomClose(msg Msg) int {
+	fmt.Printf("%s\n", "use roomr close")
+
 	close := RoomCloseNtf{}
 	bytes, _ := BzWriteRoomCloseNtf(make([]byte, 0), &close)
 	u.S.SendPkt(BZ_ROOMCLOSENTF, bytes)
+
+	//设置为nil
+	u.roomMq = nil
+	fmt.Printf("MsgRoomClose %v\n", u.roomMq)
 	return 0
 }
