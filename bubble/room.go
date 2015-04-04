@@ -13,9 +13,11 @@ const (
 
 //一个炸弹房间
 type Room struct {
-	mq chan Msg
-	u1 chan Msg //玩家1
-	u2 chan Msg //玩家2
+	mq    chan Msg
+	u1_id int
+	u2_id int
+	u1    chan Msg //玩家1
+	u2    chan Msg //玩家2
 }
 
 func MakeRoom(u1 chan Msg, u2 chan Msg) *Room {
@@ -27,9 +29,11 @@ func MakeRoom(u1 chan Msg, u2 chan Msg) *Room {
 //房间建立时通知各个玩家.
 func (r *Room) NotifyReady() {
 	u1d := RoomReadMsg{id: 0, roomMq: r.mq}
-	u2d := RoomReadMsg{id: 0, roomMq: r.mq}
+	u2d := RoomReadMsg{id: 1, roomMq: r.mq}
 	r.u1 <- Msg{t: MSG_T_ROOM_READY, d: u1d}
 	r.u2 <- Msg{t: MSG_T_ROOM_READY, d: u2d}
+	r.u1_id = 0
+	r.u2_id = 1
 }
 
 // 这时候玩家channel有可能已经被关闭，需要捕获异常。
@@ -61,11 +65,25 @@ func (r *Room) MsgQuit(msg Msg) int {
 	return -1
 }
 
+// 转发消息给同一房间的其他玩家.
+func (r *Room) MsgTcpBin(msg Msg) int {
+	fmt.Printf("i o get %v\n", msg)
+	castMsg := msg.d.(RoomCastMsg)
+	if castMsg.uid == r.u1_id {
+		r.u2 <- msg
+	} else {
+		r.u1 <- msg
+	}
+	return 0
+}
+
 // 分发消息
 func (r *Room) dispatchMsg(msg Msg) int {
 	switch {
 	case msg.t == MSG_T_QUIT:
 		return r.MsgQuit(msg)
+	case msg.t == MSG_T_TCP_BIN:
+		return r.MsgTcpBin(msg)
 	}
 	return 0
 }

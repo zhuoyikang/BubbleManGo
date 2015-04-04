@@ -12,7 +12,7 @@ import (
 // map 语法。
 var pktMapClient = agent.HandlerMap{
 	BZ_USERJOINREQ: JoinPktHandler,
-	BZ_ROOMUSERCHG: RoomUserChgHandler,
+	BZ_ROOMUSERCHG: MsgTcpBinPktHandler,
 }
 
 //默认的客户端消息处理函数.
@@ -30,10 +30,22 @@ func JoinPktHandler(s *agent.Session, t int, b []byte) int {
 	return 0
 }
 
-//玩家状态和位置变化.
-func RoomUserChgHandler(s *agent.Session, t int, b []byte) int {
-	_, chg, _ := BzReadRoomUserChg(b)
-	fmt.Printf("chgx pkt:%v\n", chg)
-	//msg := Msg{t: MSG_T_ROOM_USER_CHG, d: chg}
+// 将消息转发给room.
+func MsgTcpBinPktHandler(s *agent.Session, t int, b []byte) int {
+	u := s.U.(*UserData)
+	rMsg := RoomCastMsg{t: t, d: b, uid:u.uid}
+	fmt.Printf("transfer %d to room %v\n", t, rMsg)
+	u.roomMq <- Msg{t: MSG_T_TCP_BIN, d: rMsg}
 	return 0
 }
+
+// //玩家状态和位置变化.
+// func RoomUserChgHandler(s *agent.Session, t int, b []byte) int {
+//	_, chg, _ := BzReadRoomUserChg(b)
+//	fmt.Printf("chgx pkt:%v\n", chg)
+//	//msg := Msg{t: MSG_T_ROOM_USER_CHG, d: chg}
+//	u := s.U.(*UserData)
+//	rMsg := RoomCastMsg{t: t, d: b}
+//	u.roomMq <- Msg{t:MSG_T_TCP_BIN, d:rMsg}
+//	return 0
+// }

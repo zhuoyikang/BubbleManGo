@@ -33,12 +33,10 @@ func signalHandler() {
 
 var agentBubble* agent.TcpAgent
 
-
-
 func main() {
 	go signalHandler()
 
-	agentBubble = agent.MakeTcpAgent("127.0.0.1:3004", bubble.BubbleGs{})
+	agentBubble = agent.MakeTcpAgent("0.0.0.0:3004", bubble.BubbleGs{})
 	agentBubble.Run()
 
 }

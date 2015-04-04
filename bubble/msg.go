@@ -16,7 +16,6 @@ type Msg struct {
 	d interface{} //内容
 }
 
-
 //客户端消息
 type ClientMsg struct {
 	t int
@@ -27,4 +26,11 @@ type ClientMsg struct {
 type RoomReadMsg struct {
 	id int
 	roomMq chan Msg
+}
+
+// RoomCast Msg
+type RoomCastMsg struct {
+	t int
+	uid int
+	d []byte
 }

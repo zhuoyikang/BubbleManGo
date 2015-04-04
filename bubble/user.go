@@ -12,6 +12,7 @@ type UserData struct {
 	roomMq chan Msg
 	udid   string
 	name   string
+	uid int
 }
 
 // 用户登录成功，routine建立.
@@ -82,8 +83,8 @@ func (u *UserData) MsgClient(msg Msg) int {
 
 // 直接发送2进制消息，
 func (u *UserData) MsgTcpBin(msg Msg) int {
-	bytes := msg.d.([]byte)
-	u.S.SendBytes(bytes)
+	castMsg := msg.d.(RoomCastMsg)
+	u.S.SendPkt(uint16(castMsg.t), castMsg.d)
 	return 0
 }
 
@@ -93,13 +94,13 @@ func (u *UserData) MsgRoomReady(msg Msg) int {
 		pos: &BVector2{x: 2,
 			y: ROOM_MAP_HEIGHT - 1,
 		},
-		direction: 1,
+		direction: 5,
 		status:    0,
 	}
 	u2 := &RoomUser{
 		pos: &BVector2{x: ROOM_MAP_WIDTH - 1,
 			y: ROOM_MAP_HEIGHT - 1},
-		direction: 1,
+		direction: 5,
 		status:    0,
 	}
 	uAll := []*RoomUser{u1, u2}
@@ -112,6 +113,7 @@ func (u *UserData) MsgRoomReady(msg Msg) int {
 	bytes, _ := BzWriteRoomReadyNtf(make([]byte, 0), &ready)
 	u.S.SendPkt(BZ_ROOMREADYNTF, bytes)
 	u.roomMq = roomInfo.roomMq
+	u.uid = roomInfo.id
 	return 0
 }
 
