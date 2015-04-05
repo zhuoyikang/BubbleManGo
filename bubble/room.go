@@ -4,12 +4,16 @@ package bubble
 
 import (
 	"fmt"
+	"math"
 	"time"
 )
 
 const (
 	ROOM_MAP_WIDTH  = 18 //格子宽
 	ROOM_MAP_HEIGHT = 10 //格子高.
+
+	ROOM_TILED_WIDTH  = 64 //格子宽
+	ROOM_TILED_HEIGHT = 64 //格子宽
 )
 
 //一个炸弹房间
@@ -95,6 +99,25 @@ func (r *Room) MsgTcpBin(msg Msg) int {
 	return 0
 }
 
+//根据坐标计算格子.
+func (r *Room) positionForTileCoord(x1 int32, y1 int32) (x2 int32, y2 int32) {
+	x2 = (x1-1)*+ROOM_TILED_WIDTH + ROOM_TILED_WIDTH/2
+	y2 = (y1-1)*+ROOM_TILED_HEIGHT + ROOM_TILED_HEIGHT/2
+	return
+}
+
+//根据坐标计算格子.
+func (r *Room) tileCoordForPosition(x1 int32, y1 int32) (x2 int32, y2 int32) {
+
+	x2 = x1 / ROOM_TILED_WIDTH
+	y2 = (ROOM_MAP_HEIGHT*ROOM_TILED_HEIGHT - y1) / ROOM_TILED_HEIGHT
+
+	y2 = int32(math.Min(math.Max(0, float64(y2)), ROOM_MAP_HEIGHT-1))
+	x2 = int32(math.Min(math.Max(0, float64(x2)), ROOM_MAP_WIDTH-1))
+
+	return
+}
+
 //处理客户端逻辑消息，并转发给别人.
 func (r *Room) MsgSetBubble(msg Msg) int {
 	castMsg := msg.d.(RoomMsg)
@@ -105,7 +128,11 @@ func (r *Room) MsgSetBubble(msg Msg) int {
 	now := int32(time.Now().UnixNano() / 1000000000)
 	setBubble.b.keeptime += now
 
-	fmt.Printf("MsgSetBubble %v \n", setBubble.b)
+	tx, ty := r.tileCoordForPosition(setBubble.b.pos.x, setBubble.b.pos.y)
+	fmt.Printf("MsgSetBubble %d x %d y %d \n", setBubble.b.id,
+		setBubble.b.pos.x, setBubble.b.pos.y)
+	fmt.Printf("MsgSetBubble  tx %d ty %d \n", tx, ty)
+
 	r.bubbleList = append(r.bubbleList, *setBubble.b)
 
 	dbyte, _ := BzWriteSetBubble(make([]byte, 0), setBubble)
@@ -151,13 +178,13 @@ func (r *Room) BubbleBomb(b Bubble) {
 	fmt.Printf("bb bomb %d\n", b.id)
 	var bubbleBomb BubbleBomb
 	bubbleBomb.id = b.id
-	bubbleBomb.destroyTiles = make([]*BVector2,0)
-	bubbleBomb.destroyUsers = make([]int32,0)
+	bubbleBomb.destroyTiles = make([]*BVector2, 0)
+	bubbleBomb.destroyUsers = make([]int32, 0)
 
 	bytes, _ := BzWriteBubbleBomb(make([]byte, 0), &bubbleBomb)
 	var msg Msg
 	msg.t = MSG_T_TCP_BIN
-	msg.d = RoomMsg{t:9, uid:0, d:bytes}
+	msg.d = RoomMsg{t: 9, uid: 0, d: bytes}
 
 	r.u2 <- msg
 	r.u1 <- msg
