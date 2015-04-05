@@ -173,13 +173,61 @@ func (r *Room) dispatchMsg(msg Msg) int {
 	return 0
 }
 
-// 泡泡爆炸逻辑
+// 泡泡爆炸逻辑，计算更新地图
+// 把格子可以爆的爆掉。
+// 有些玩家被爆掉的，将其stuck.
+func (r *Room) BubbleBombConflict(b Bubble) (destroyTiles []*BVector2, destroyUsers []int32) {
+	//泡泡所在的格子，计算泡泡可以摧毁的格子.
+	tx, ty := r.tileCoordForPosition(b.pos.x, b.pos.y)
+
+	//x坐标的攻击范围
+	tx_min := int32(math.Max(0, float64(tx-b.power)))
+	tx_max := int32(math.Min(float64(ROOM_MAP_WIDTH-1), float64(tx+b.power)))
+	fmt.Printf("conflit tx_min %d tx_max %d\n", tx_min, tx_max);
+
+	//y坐标的攻击范围
+	ty_min := int32(math.Max(0, float64(ty-b.power)))
+	ty_max := int32(math.Min(float64(ROOM_MAP_HEIGHT-1), float64(ty+b.power)))
+
+	fmt.Printf("conflit ty_min %d ty_max %d\n", ty_min, ty_max);
+
+	//计算x轴上被摧毁的格子
+	i := tx_min
+	for i < tx_max {
+		fmt.Printf("tx %d ty %d %d\n", i, ty, r.mm[ty][i])
+		switch v := r.mm[ty][i]; {
+		case v == 1:
+			r.mm[ty][i] = 1
+			v := BVector2{x: i, y: ty}
+			destroyTiles = append(destroyTiles, &v)
+		}
+		i++
+	}
+
+	//计算y轴上被摧毁的格子
+	j := ty_min
+	for j < ty_max {
+		fmt.Printf("tx %d ty %d %d\n",tx, j, r.mm[j][tx])
+		switch v := r.mm[j][tx]; {
+		case v == 1:
+			r.mm[j][tx] = 1
+			v := BVector2{x: tx, y: j}
+			destroyTiles = append(destroyTiles, &v)
+		}
+		j++
+	}
+
+	return
+}
+
+// 泡泡爆炸逻辑，通知
 func (r *Room) BubbleBomb(b Bubble) {
-	fmt.Printf("bb bomb %d\n", b.id)
+	//通知客户端泡泡爆炸，并且有些玩家和格子被摧毁了。
 	var bubbleBomb BubbleBomb
 	bubbleBomb.id = b.id
-	bubbleBomb.destroyTiles = make([]*BVector2, 0)
-	bubbleBomb.destroyUsers = make([]int32, 0)
+	bubbleBomb.destroyTiles, bubbleBomb.destroyUsers = r.BubbleBombConflict(b)
+
+	fmt.Printf("destory tile %v\n", bubbleBomb.destroyTiles)
 
 	bytes, _ := BzWriteBubbleBomb(make([]byte, 0), &bubbleBomb)
 	var msg Msg
