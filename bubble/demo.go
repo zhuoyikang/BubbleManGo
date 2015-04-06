@@ -12,6 +12,7 @@ const (
 	BZ_ROOMUSERCHG = 7
 	BZ_SETBUBBLEREQ = 8
 	BZ_BUBBLEBOMB = 9
+	BZ_ROOMUSERSTATUSCHG = 10
 )
 
 type UserLoginReq struct {
@@ -76,6 +77,11 @@ type BubbleBomb struct {
 	id int32
 	destroyTiles []*BVector2
 	destroyUsers []int32
+}
+
+type RoomUserStatusChg struct {
+	id int32
+	status int32
 }
 
 func BzReadUserLoginReq(datai []byte) (data []byte, ret *UserLoginReq, err error) {
@@ -357,5 +363,24 @@ func BzWriteBubbleBomb(datai []byte, ret *BubbleBomb) (data []byte, err error) {
 	for _, destroyUsers_v := range ret.destroyUsers {
 		data, err = BzWriteint32(data, destroyUsers_v)
 	}
+	return
+}
+func BzReadRoomUserStatusChg(datai []byte) (data []byte, ret *RoomUserStatusChg, err error) {
+	data = datai
+	ret = &RoomUserStatusChg{}
+	data, ret.id, err = BzReadint32(data)
+ 	if err != nil {
+ 		return
+ 	}
+	data, ret.status, err = BzReadint32(data)
+ 	if err != nil {
+ 		return
+ 	}
+	return
+}
+func BzWriteRoomUserStatusChg(datai []byte, ret *RoomUserStatusChg) (data []byte, err error) {
+	data = datai
+	data, err = BzWriteint32(data, ret.id)
+	data, err = BzWriteint32(data, ret.status)
 	return
 }

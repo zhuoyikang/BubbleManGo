@@ -114,7 +114,7 @@ func (s *Session) HandleClient(agent *TcpAgent) {
 	agent.a.Start(s)
 	for {
 		t, data := s.ReadPkt(s.conn)
-		fmt.Printf("r %d %v\n", t, data)
+		//fmt.Printf("r %d %v\n", t, data)
 		if t < 0 {
 			//读包异常，直接退出
 			if s.U != nil {
