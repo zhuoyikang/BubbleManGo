@@ -91,8 +91,8 @@ func (u *UserData) MsgTcpBin(msg Msg) int {
 // 房间准备好。
 func (u *UserData) MsgRoomReady(msg Msg) int {
 	u1 := &RoomUser{
-		pos: &BVector2{x: 2,
-			y: ROOM_MAP_HEIGHT - 1,
+		pos: &BVector2{x: 0,
+			y:0,
 		},
 		direction: 5,
 		status:    0,

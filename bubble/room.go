@@ -178,16 +178,18 @@ func (r *Room) dispatchMsg(msg Msg) int {
 // 有些玩家被爆掉的，将其stuck.
 func (r *Room) BubbleBombConflict(b Bubble) (destroyTiles []*BVector2, destroyUsers []int32) {
 	//泡泡所在的格子，计算泡泡可以摧毁的格子.
-	tx, ty := r.tileCoordForPosition(b.pos.x, b.pos.y)
+	//tx, ty := r.tileCoordForPosition(b.pos.x, b.pos.y)
+	tx, ty := b.pos.x, b.pos.y
+	power := b.power+2
 
 	//x坐标的攻击范围
-	tx_min := int32(math.Max(0, float64(tx-b.power)))
-	tx_max := int32(math.Min(float64(ROOM_MAP_WIDTH-1), float64(tx+b.power)))
+	tx_min := int32(math.Max(0, float64(tx-power)))
+	tx_max := int32(math.Min(float64(ROOM_MAP_WIDTH-1), float64(tx+power)))
 	fmt.Printf("conflit tx_min %d tx_max %d\n", tx_min, tx_max);
 
 	//y坐标的攻击范围
-	ty_min := int32(math.Max(0, float64(ty-b.power)))
-	ty_max := int32(math.Min(float64(ROOM_MAP_HEIGHT-1), float64(ty+b.power)))
+	ty_min := int32(math.Max(0, float64(ty-power)))
+	ty_max := int32(math.Min(float64(ROOM_MAP_HEIGHT-1), float64(ty+power)))
 
 	fmt.Printf("conflit ty_min %d ty_max %d\n", ty_min, ty_max);
 
