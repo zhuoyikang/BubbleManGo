@@ -1,1 +1,29 @@
 这个文件夹处理业务。
+
+#+BEGIN_SRC graphviz-dot :file ./dot_success.png :cmdline -Kdot -Tpng :exports both
+    digraph {
+            rankdir=LR;
+            splines=true;
+            node [shape=circle];
+
+            Uc [label="Uc"]
+            Ur [label="Ur"]
+            Room [label="Room"]
+
+            Uc -> Room
+            Room -> Ur
+            Uc -> Ur
+            Ur -> Room [style=dotted]
+    }
+#+END_SRC
+
+#+RESULTS:
+[[file:./dot_success.png]]
+
+
+两个用户进程
+
+  1. Uc-处理客户端socket发来的消息。
+  2. Ur-处理Room发来的消息。
+
+  消息的传递需要杜绝环形传递，会死锁，比如 Ur -> Room 会造成Ur和Room之间形成环。
