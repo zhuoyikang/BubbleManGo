@@ -45,7 +45,7 @@ type Room struct {
 
 // 新建一个房间
 func MakeRoom(u1 chan Msg, u2 chan Msg) *Room {
-	mq := make(chan Msg, 2)
+	mq := make(chan Msg)
 	fmt.Printf("u1 %v u2 %v\n", u1, u2)
 	room := Room{u1: u1, u2: u2, mq: mq}
 	room.mm = [ROOM_MAP_HEIGHT][ROOM_MAP_WIDTH]int{

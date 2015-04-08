@@ -3,22 +3,39 @@ package bubble
 import (
 	"agent"
 	"fmt"
+	"sync"
 )
 
 // 玩家数据
 type UserData struct {
-	S      *agent.Session
-	mq     chan Msg
+	S  *agent.Session
+	mq chan Msg
+	//tailMq     chan Msg
 	roomMq chan Msg
 	udid   string
 	name   string
-	uid int
+	uid    int
+	mutex  *sync.Mutex
 }
 
 // 用户登录成功，routine建立.
 func MakeUserData(s *agent.Session, udid string) *UserData {
 	mq := make(chan Msg)
-	return &UserData{S: s, udid: udid, name: "zyk", mq: mq}
+	//tailMq := make(chan Msg)
+	return &UserData{S: s, udid: udid, name: "zyk",
+		mutex: &sync.Mutex{},
+		mq:    mq, // tailMq:tailMq
+	}
+}
+
+// 处理客户端消息
+func (u *UserData) MsgClient(msg Msg) int {
+	m := msg.d.(ClientMsg)
+	if h, status := pktMapClient[m.t]; status == true {
+		return h(u.S, m.t, m.d)
+	}else{
+		return ClientHandler(u.S, m.t, m.d)
+	}
 }
 
 //分发处理各项消息，better use map。
@@ -50,9 +67,12 @@ func (u *UserData) Run() {
 Out:
 	for {
 		msg, status = <-u.mq
+		//u.mutex.Lock()
 		if ret := u.MsgDispatch(msg, status); ret < 0 {
+			//u.mutex.Unlock()
 			break Out
 		}
+		//u.mutex.Unlock()
 	}
 	fmt.Printf("%s\n", "going to die")
 }
@@ -60,8 +80,8 @@ Out:
 //玩家异步消息处理进程.
 func (u *UserData) Stop() {
 	fmt.Printf("%s stop %v\n", "UseData", u.roomMq)
-	if(u.roomMq != nil) {
-		u.roomMq <- Msg{t:MSG_T_QUIT}
+	if u.roomMq != nil {
+		u.roomMq <- Msg{t: MSG_T_QUIT}
 	}
 	//关闭mq后，用户服务器进程也会关闭.
 	close(u.mq)
@@ -70,16 +90,6 @@ func (u *UserData) Stop() {
 /*------------------------------------------------------------------------------
  各种业务消息处理
 ------------------------------------------------------------------------------*/
-
-// 处理客户端消息
-func (u *UserData) MsgClient(msg Msg) int {
-	m := msg.d.(ClientMsg)
-	if h, status := pktMapClient[m.t]; status == true {
-		return h(u.S, m.t, m.d)
-	}else{
-		return ClientHandler(u.S, m.t, m.d)
-	}
-}
 
 // 直接发送2进制消息，
 func (u *UserData) MsgTcpBin(msg Msg) int {
@@ -92,7 +102,7 @@ func (u *UserData) MsgTcpBin(msg Msg) int {
 func (u *UserData) MsgRoomReady(msg Msg) int {
 	u1 := &RoomUser{
 		pos: &BVector2{x: 1,
-			y:1,
+			y: 1,
 		},
 		direction: 5,
 		status:    0,
