@@ -1,6 +1,6 @@
 这个文件夹处理业务。
 
-#+BEGIN_SRC graphviz-dot :file ./dot_success.png :cmdline -Kdot -Tpng :exports both
+#+BEGIN_SRC graphviz-dot :file ./dot_success.png :cmdline -Kdot -Tpng :exports results
     digraph {
             rankdir=LR;
             splines=true;
