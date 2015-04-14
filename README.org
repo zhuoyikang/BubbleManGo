@@ -1,5 +1,11 @@
 炸弹人服务器，使用Golang编写。
-* 服务器通信模型
+
+* 版本日志
+
+  + v0.2: working...
+  + v0.1: 在单进程内完成一个可以玩的版本demo。
+
+* 框架图
 
   #+BEGIN_SRC graphviz-dot :file frames.png :cmdline -Kdot -Tpng :exports results
     digraph frames {
@@ -13,12 +19,11 @@
                     c4;
             }
 
-
             subgraph cluster_servers  {
                     label="servers"
                     bgcolor="cadetblue2"
                     subgraph cluster_a  {
-                            label="agents"
+                            label="gs"
                             bgcolor="darkseagreen1"
                             a1;
                             a2;
@@ -43,6 +48,8 @@
                             r3;
                             r4;
                     }
+
+                    hall [color=blue,label="游戏大厅"]
             }
 
             c1 -> a1;
@@ -68,11 +75,48 @@
 
     }
   #+END_SRC
-
   #+RESULTS:
   [[file:frames.png]]
 
-  1) clients:客户端，客户端随机和任何一个agent相连；同一个房间的玩家可以在不同的agents上。
-  2) agents:处理客户端连接，玩家数据处理；agents之间互相不可见。
-  3) hubs:agents和rooms通信的桥梁；hubs不处理逻辑，无状态，只转发消息。
-  4) rooms: 房间，有多个房间节点；rooms之间互相不可见。
+   1. clients:客户端，客户端随机和任何一个gs相连；同一个房间的玩家可以在不同的gs上。
+   2. gs:处理客户端连接，玩家数据处理；gs之间互相不可见。
+   3. hubs:gs和rooms通信的桥梁；hubs不处理逻辑，无状态，只转发消息。
+   4. rooms: 房间，有多个房间节点；rooms之间互相不可见。
+   5. hall: 大厅,一个单独的节点，没有负载均衡和备份，挂了大厅也就挂了。
+
+* clients
+  所有的客户端都在一个服务器集群内部玩。
+
+* gs
+  大部分的逻辑都在gs。
+** 客户端连接gs
+   在gs上验证密码账号登陆。在gs中存储会话数据，进行自身数据的改变(升级，买道具，内购)。
+
+** 连接hub
+   gs.config.hub_list [所有的hub列表]: gs下配置所有的hub列表，每一个gs都合其配置的hub相连接，每次通信随机选择一个hub。当和其连接的hub关闭，将其中可用连接列表中删掉，并异步尝试重连。
+   gs.config.name [名字]：每一个服务器节点都有自己单独的全局唯一的名字，注册到hub。
+
+** 集群角色列表
+   hub将维护一个集群角色列表，每次有新节点加入或者退出，这个列表会更新，并推送给其他节点。
+
+   gs_list: gs1,gs2...
+   hub_list: hub1,hub2...
+   room_list: room1,room2...
+   hall_list: hall1,hall2..
+
+** 建立房间
+    1. 随机选择room_list中的一个room节点发送建立房间消息。(建立超时机制)
+    2. Room告诉大厅房间建立; 返回gs房间信息到玩家的（我的房间）
+    3. 一个用户同时只能建立一个房间.
+
+* hub
+  每一个hub和所有的gs和room，halls相连接。
+  每个gs或者room挂掉，hub向其他节点广播此消息。由于每个gs或者room都和两个以上的hub相连，同一时间会有重复消息挂掉的消息发过去。
+
+  hub.config.name [名字] 唯一标示这个hub。
+
+* room
+  用来做房间逻辑。
+  room.config.name [名字] 唯一标示这个room节点。
+* 跨节点基础通信.
+  Gs -- Hub.
